@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#831843">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Aplikasi Android KLOP KB (Kriteria Kelayakan Medis WHO)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fdf2f8',
+                            100: '#fce7f3',
+                            200: '#fbcfe8',
+                            300: '#f472b6',
+                            400: '#e879f9',
+                            500: '#ec4899',
+                            600: '#db2777',
+                            700: '#be185d',
+                            800: '#9d174d',
+                            900: '#831843',
+                            950: '#500724',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .wheel-touch-area {
+            touch-action: none;
+        }
+        /* Custom WHO Category Colors */
+        .cat-1-bg { background-color: #10b981; color: #ffffff; }
+        .cat-2-bg { background-color: #eab308; color: #ffffff; }
+        .cat-3-bg { background-color: #f97316; color: #ffffff; }
+        .cat-4-bg { background-color: #ef4444; color: #ffffff; }
+        
+        .cat-1-border { border-color: #10b981; }
+        .cat-2-border { border-color: #eab308; }
+        .cat-3-border { border-color: #f97316; }
+        .cat-4-border { border-color: #ef4444; }
+
+        /* Scrollbar Hide for mobile feel */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Android Ripple Effect Simulator */
+        .android-btn:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body class="h-full flex justify-center items-center bg-slate-950 text-slate-800 antialiased sm:py-4">
+
+    <!-- Mobile App Container Frame -->
+    <div class="w-full max-w-md h-full sm:h-[880px] sm:max-h-[96vh] sm:rounded-[40px] bg-slate-900 shadow-2xl flex flex-col overflow-hidden relative border-0 sm:border-[8px] sm:border-slate-800">
+
+        <!-- Android Status Bar Header -->
+        <div class="bg-brand-900 text-white px-5 pt-3 pb-2 flex justify-between items-center text-xs select-none z-30 shrink-0">
+            <div class="flex items-center space-x-2 font-semibold">
+                <i class="fa-solid fa-notes-medical text-brand-400"></i>
+                <span class="text-slate-100 tracking-wide font-bold">KLOP KB Mobile</span>
+                <span class="bg-brand-700/80 text-[10px] text-brand-200 px-1.5 py-0.5 rounded font-mono">WHO MEC</span>
+            </div>
+            <div class="flex items-center space-x-2 text-[11px] text-brand-200">
+                <span id="currentTime">10:00</span>
+                <i class="fa-solid fa-wifi text-[10px]"></i>
+                <i class="fa-solid fa-battery-full text-xs"></i>
+            </div>
+        </div>
+
+        <!-- App Header Bar -->
+        <header class="bg-brand-800 text-white px-4 py-3 shadow-md flex items-center justify-between z-20 shrink-0">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-brand-600 flex items-center justify-center text-white shadow-sm font-bold text-lg">
+                    <i class="fa-solid fa-arrows-spin"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-sm text-white leading-tight">Roda KLOP KB Interaktif</h1>
+                    <p class="text-[10px] text-brand-200">Kriteria Kelayakan Medis Kontrasepsi</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-1">
+                <button id="btnInstallPwa" class="hidden p-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs transition android-btn animate-bounce" title="Instal Aplikasi di HP">
+                    <i class="fa-solid fa-download text-sm"></i>
+                </button>
+                <button id="btnInfo" class="p-2 rounded-lg bg-brand-700 hover:bg-brand-600 text-brand-100 text-xs transition android-btn" title="Panduan">
+                    <i class="fa-solid fa-circle-question text-sm"></i>
+                </button>
+                <button id="btnReset" class="p-2 rounded-lg bg-brand-700 hover:bg-brand-600 text-brand-100 text-xs transition android-btn" title="Reset Roda">
+                    <i class="fa-solid fa-rotate text-sm"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area (Tab Views) -->
+        <main class="flex-1 overflow-y-auto bg-slate-100 relative no-scrollbar pb-20">
+
+            <!-- TAB 1: RODA KLOP (Wheel View) -->
+            <div id="tabWheelView" class="tab-content p-4 space-y-4">
+                
+                <!-- Quick Search / Dropdown Picker -->
+                <div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200 space-y-2">
+                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
+                        <span><i class="fa-solid fa-list-check text-brand-600 mr-1"></i> Pilih Kondisi Medis</span>
+                        <span class="text-[10px] text-slate-400 font-normal">30+ Kondisi Klinis</span>
+                    </label>
+                    <div class="relative">
+                        <select id="conditionSelect" class="w-full pl-3 pr-8 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500 focus:outline-none text-slate-800">
+                            <!-- Populated dynamically via JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SVG Wheel Display Canvas -->
+                <div class="bg-white rounded-3xl p-3 shadow-sm border border-slate-200 flex flex-col items-center justify-center relative overflow-hidden">
+                    
+                    <!-- Pointer Indicator Header -->
+                    <div class="flex items-center justify-between w-full mb-1 px-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Arahkan Sektor ke Panah</span>
+                        <div class="flex items-center space-x-1 bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                            <i class="fa-solid fa-hand-pointer animate-pulse"></i>
+                            <span>Putar Usap Jari</span>
+                        </div>
+                    </div>
+
+                    <!-- Alignment Pointer Arrow -->
+                    <div class="relative w-full flex justify-center items-center my-1 z-20">
+                        <div class="absolute -top-3 z-30 flex flex-col items-center pointer-events-none">
+                            <span class="bg-rose-600 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-md tracking-wider">PANAH PILIHAN</span>
+                            <i class="fa-solid fa-caret-down text-rose-600 text-2xl -mt-1 drop-shadow-md"></i>
+                        </div>
+
+                        <!-- Wheel SVG Area -->
+                        <div id="wheelContainer" class="wheel-touch-area relative w-full max-w-[340px] aspect-square flex items-center justify-center cursor-grab active:cursor-grabbing select-none my-2">
+                            <svg id="wheelSvg" viewBox="0 0 600 600" class="w-full h-full drop-shadow-md overflow-visible">
+                                <defs>
+                                    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+                                        <feDropShadow dx="0" dy="4" stdDeviation="5" flood-opacity="0.3"/>
+                                    </filter>
+                                </defs>
+
+                                <!-- Outer Ring Group (Medical Conditions) -->
+                                <g id="outerRing" class="transition-transform duration-75">
+                                    <circle cx="300" cy="300" r="285" fill="#be185d" stroke="#500724" stroke-width="4" />
+                                    <g id="outerSectors"></g>
+                                </g>
+
+                                <!-- Inner Ring Group (Methods & Windows) -->
+                                <g id="innerRing" class="transition-transform duration-75">
+                                    <circle cx="300" cy="300" r="195" fill="#fdf2f8" stroke="#db2777" stroke-width="4" filter="url(#shadow)" />
+                                    <g id="innerSectors"></g>
+                                </g>
+
+                                <!-- Center Cap Hub -->
+                                <g id="centerHub">
+                                    <circle cx="300" cy="300" r="52" fill="#831843" stroke="#ffffff" stroke-width="4" filter="url(#shadow)"/>
+                                    <circle cx="300" cy="300" r="44" fill="#be185d" />
+                                    <text x="300" y="295" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="800">KLOP KB</text>
+                                    <text x="300" y="312" text-anchor="middle" fill="#fce7f3" font-size="9" font-weight="600">WHO MEC</text>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Ring Rotation Selector Toggle -->
+                    <div class="w-full grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl text-[11px] font-bold mt-1">
+                        <button id="modeOuter" class="py-1.5 rounded-lg bg-brand-700 text-white shadow-xs transition text-center">
+                            Putar Ring Luar (Kondisi)
+                        </button>
+                        <button id="modeInner" class="py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition text-center">
+                            Putar Ring Dalam (Metode)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Selected Condition Info Card -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <span id="activeConditionCategory" class="text-[10px] uppercase font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-full">
+                                Kategori Klinis
+                            </span>
+                            <h2 id="activeConditionTitle" class="text-base font-extrabold text-slate-800 mt-1 leading-snug">---</h2>
+                        </div>
+                    </div>
+                    <p id="activeConditionDesc" class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                        Pilih kondisi medis di atas untuk melihat rekomendasi kelayakan penggunaan kontrasepsi.
+                    </p>
+                </div>
+
+                <!-- Compatibility Results List -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <h3 class="text-xs font-bold text-slate-800 flex items-center">
+                            <i class="fa-solid fa-shield-halved text-brand-600 mr-1.5"></i> Kelayakan Metode Kontrasepsi
+                        </h3>
+                        <span class="text-[10px] text-slate-400 font-semibold">Skala WHO 1 - 4</span>
+                    </div>
+
+                    <div id="methodResultsList" class="space-y-2">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: SKRINING PASIEN (Patient Assessment Calculator) -->
+            <div id="tabScreeningView" class="tab-content p-4 space-y-4 hidden">
+                <div class="bg-brand-800 text-white rounded-2xl p-4 shadow-sm space-y-1">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-user-nurse text-brand-300 text-lg"></i>
+                        <h2 class="text-sm font-bold">Kalkulator Skrining Pasien KB</h2>
+                    </div>
+                    <p class="text-[11px] text-brand-200">Evaluasi otomatis kelayakan metode KB berdasarkan kondisi fisiologis & penyakit pasien.</p>
+                </div>
+
+                <!-- Patient Form Card -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+                    <h3 class="text-xs font-bold text-slate-800 border-b border-slate-100 pb-2">
+                        1. Profil & Kondisi Fisiologis Pasien
+                    </h3>
+
+                    <!-- Age & Postpartum -->
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label class="font-semibold text-slate-600 block mb-1">Usia Ibu</label>
+                            <select id="screenAge" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:ring-1 focus:ring-brand-500">
+                                <option value="normal">Usia &lt; 35 Tahun</option>
+                                <option value="above35_non_smoker">Usia ≥ 35 (Tidak Merokok)</option>
+                                <option value="above35_light_smoker">Usia ≥ 35 (Perokok &lt; 15/hari)</option>
+                                <option value="above35_heavy_smoker">Usia ≥ 35 (Perokok ≥ 15/hari)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-600 block mb-1">Status Pascapersalinan</label>
+                            <select id="screenPostpartum" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:ring-1 focus:ring-brand-500">
+                                <option value="none">Tidak Hamil / Tidak Baru Melahirkan</option>
+                                <option value="bf_under_6w">Menyusui (&lt; 6 Minggu)</option>
+                                <option value="bf_6w_6m">Menyusui (6 Mgg - 6 Bulan)</option>
+                                <option value="bf_above_6m">Menyusui (&gt; 6 Bulan)</option>
+                                <option value="non_bf_under_3w">Tidak Menyusui (&lt; 3 Minggu)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Blood Pressure -->
+                    <div>
+                        <label class="font-semibold text-slate-600 block mb-1 text-xs">Tekanan Darah (Sistolik / Diastolik)</label>
+                        <select id="screenBP" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-brand-500">
+                            <option value="normal">Normal (&lt; 140 / &lt; 90 mmHg)</option>
+                            <option value="mild">Hipertensi Ringan/Sedang (140-159 / 90-99 mmHg)</option>
+                            <option value="severe">Hipertensi Berat (≥ 160 / ≥ 100 mmHg)</option>
+                        </select>
+                    </div>
+
+                    <h3 class="text-xs font-bold text-slate-800 border-b border-slate-100 pt-2 pb-1">
+                        2. Riwayat Penyakit Penyerta (Centang yang sesuai)
+                    </h3>
+
+                    <!-- Disease Checkboxes -->
+                    <div class="space-y-2 text-xs text-slate-700">
+                        <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded-xl border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="chkDiabetes" class="rounded text-brand-600 focus:ring-brand-500">
+                            <span>Diabetes Melitus (DM)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded-xl border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="chkBreastCancer" class="rounded text-brand-600 focus:ring-brand-500">
+                            <span class="text-rose-700 font-semibold">Riwayat / Kanker Payudara Aktif</span>
+                        </label>
+                        <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded-xl border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="chkDVT" class="rounded text-brand-600 focus:ring-brand-500">
+                            <span>Riwayat Trombosis Vena (DVT / Emboli Paru)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded-xl border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="chkAbnormalBleeding" class="rounded text-brand-600 focus:ring-brand-500">
+                            <span>Perdarahan Vagina Tak Terdiagnosa</span>
+                        </label>
+                        <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded-xl border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="chkSTI" class="rounded text-brand-600 focus:ring-brand-500">
+                            <span>Infeksi Menular Seksual (IMS) / Servisitis Aktif</span>
+                        </label>
+                    </div>
+
+                    <button id="btnCalculateScreening" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs transition shadow-md android-btn flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>Analisa Kelayakan Pasien</span>
+                    </button>
+                </div>
+
+                <!-- Screening Evaluation Result Output -->
+                <div id="screeningResultBox" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 hidden space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <h3 class="text-xs font-extrabold text-brand-800 flex items-center">
+                            <i class="fa-solid fa-square-check text-brand-600 mr-1.5"></i> Hasil Evaluasi Skrining
+                        </h3>
+                        <button id="btnSaveResume" class="text-[10px] font-bold text-brand-700 bg-brand-50 hover:bg-brand-100 px-2 py-1 rounded-lg">
+                            <i class="fa-solid fa-bookmark mr-1"></i>Simpan Resume
+                        </button>
+                    </div>
+                    <div id="screeningSummaryCards" class="space-y-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: ASISTEN AI (Gemini Clinical AI Consultation) -->
+            <div id="tabAiView" class="tab-content p-4 space-y-4 hidden">
+                <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-md space-y-2">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xs font-bold">Asisten Klinis AI KLOP KB</h2>
+                            <p class="text-[10px] text-slate-300">Konsultasi interaktif standar WHO MEC & Kemenkes RI</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Box Screen -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 h-[380px] flex flex-col overflow-hidden">
+                    <div id="chatMessages" class="flex-1 p-3 overflow-y-auto space-y-3 text-xs">
+                        <div class="bg-brand-50 text-brand-900 p-3 rounded-2xl rounded-tl-none border border-brand-100 max-w-[88%] leading-relaxed">
+                            <p class="font-bold text-[11px] text-brand-700 mb-1">👋 Halo Bidan / Dokter!</p>
+                            Saya Asisten AI KLOP KB. Anda bisa menanyakan kasus klinis pasien, pertimbangan efektivitas kontrasepsi, atau kelayakan medis untuk kondisi penyakit tertentu.
+                        </div>
+                    </div>
+                    
+                    <div class="p-2 border-t border-slate-100 bg-slate-50 flex items-center space-x-2">
+                        <input type="text" id="aiInput" placeholder="Tulis kondisi pasien (misal: Ibu 32th, menyusui 2 bulan, tensi 150/90)..." class="flex-1 p-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        <button id="btnSendAi" class="p-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold transition android-btn">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Prompt Chips -->
+                <div class="space-y-1">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contoh Pertanyaan Cepat:</span>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button class="chip-prompt text-[10px] bg-white hover:bg-brand-50 border border-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-medium transition">
+                            Kontrasepsi aman untuk riwayat hipertensi & menyusui?
+                        </button>
+                        <button class="chip-prompt text-[10px] bg-white hover:bg-brand-50 border border-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-medium transition">
+                            Kategori KLOP untuk ibu perokok usia 38 tahun?
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: DATABASE & PANDUAN (Search & WHO Guidelines) -->
+            <div id="tabGuideView" class="tab-content p-4 space-y-4 hidden">
+                <!-- Search Database -->
+                <div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200 space-y-2">
+                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                        Cari Kondisi / Penyakit Medis
+                    </label>
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="searchCondition" placeholder="Cari misal: hipertensi, diabetes, menyusui..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- WHO Category Legend Box -->
+                <div class="bg-slate-900 text-white rounded-2xl p-4 shadow-sm space-y-2">
+                    <h3 class="text-xs font-bold text-brand-300 uppercase tracking-wider">Klasifikasi Kategori Kelayakan WHO</h3>
+                    <div class="grid grid-cols-1 gap-2 text-xs">
+                        <div class="flex items-center space-x-2 bg-slate-800 p-2 rounded-xl">
+                            <span class="w-6 h-6 rounded-lg cat-1-bg flex items-center justify-center font-extrabold text-xs shrink-0">1</span>
+                            <div>
+                                <strong class="block text-emerald-400 text-[11px]">Kategori 1</strong>
+                                <span class="text-[10px] text-slate-300">Dapat digunakan tanpa pembatasan sama sekali.</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 bg-slate-800 p-2 rounded-xl">
+                            <span class="w-6 h-6 rounded-lg cat-2-bg flex items-center justify-center font-extrabold text-xs shrink-0">2</span>
+                            <div>
+                                <strong class="block text-yellow-400 text-[11px]">Kategori 2</strong>
+                                <span class="text-[10px] text-slate-300">Secara umum dapat digunakan; keuntungan &gt; risiko kesehatan.</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 bg-slate-800 p-2 rounded-xl">
+                            <span class="w-6 h-6 rounded-lg cat-3-bg flex items-center justify-center font-extrabold text-xs shrink-0">3</span>
+                            <div>
+                                <strong class="block text-orange-400 text-[11px]">Kategori 3</strong>
+                                <span class="text-[10px] text-slate-300">Risiko &gt; keuntungan. Tidak direkomendasikan kecuali tidak ada pilihan lain.</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 bg-slate-800 p-2 rounded-xl">
+                            <span class="w-6 h-6 rounded-lg cat-4-bg flex items-center justify-center font-extrabold text-xs shrink-0">4</span>
+                            <div>
+                                <strong class="block text-rose-400 text-[11px]">Kategori 4 (Kontraindikasi)</strong>
+                                <span class="text-[10px] text-slate-300">Risiko kesehatan tak dapat diterima. Metode DILARANG digunakan.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conditions Database Cards List -->
+                <div class="space-y-2">
+                    <h3 class="text-xs font-bold text-slate-700">Daftar Kondisi Medis WHO MEC</h3>
+                    <div id="dbConditionList" class="space-y-2">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Android Bottom Navigation Bar -->
+        <nav class="bg-white border-t border-slate-200 px-2 py-1.5 flex justify-around items-center absolute bottom-0 left-0 right-0 z-30 shrink-0">
+            <button data-target="tabWheelView" class="nav-btn active flex flex-col items-center py-1 px-3 rounded-xl text-brand-700 font-bold transition android-btn">
+                <i class="fa-solid fa-arrows-spin text-base"></i>
+                <span class="text-[10px] mt-0.5">Roda KLOP</span>
+            </button>
+            <button data-target="tabScreeningView" class="nav-btn flex flex-col items-center py-1 px-3 rounded-xl text-slate-400 font-medium transition android-btn">
+                <i class="fa-solid fa-clipboard-check text-base"></i>
+                <span class="text-[10px] mt-0.5">Skrining</span>
+            </button>
+            <button data-target="tabAiView" class="nav-btn flex flex-col items-center py-1 px-3 rounded-xl text-slate-400 font-medium transition android-btn">
+                <i class="fa-solid fa-robot text-base"></i>
+                <span class="text-[10px] mt-0.5">Asisten AI</span>
+            </button>
+            <button data-target="tabGuideView" class="nav-btn flex flex-col items-center py-1 px-3 rounded-xl text-slate-400 font-medium transition android-btn">
+                <i class="fa-solid fa-book-medical text-base"></i>
+                <span class="text-[10px] mt-0.5">Panduan</span>
+            </button>
+        </nav>
+
+        <!-- Modal Info / Help -->
+        <div id="infoModal" class="absolute inset-0 bg-slate-950/70 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-xs w-full p-5 shadow-2xl relative space-y-3">
+                <button id="btnCloseModal" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-circle-info"></i>
+                    </div>
+                    <h3 class="font-extrabold text-sm text-slate-800">Petunjuk Penggunaan</h3>
+                </div>
+                <div class="text-xs text-slate-600 space-y-2 leading-relaxed">
+                    <p>1. <strong>Roda KLOP:</strong> Usap jari pada layar atau pilih drop-down untuk menyesuaikan kondisi medis pasien di panah penunjuk atas.</p>
+                    <p>2. <strong>Jendela Angka:</strong> Menampilkan kategori kelayakan medis 1, 2, 3, atau 4 untuk masing-masing metode kontrasepsi.</p>
+                    <p>3. <strong>Fitur Skrining:</strong> Gunakan kalkulator skrining untuk evaluasi multi-kondisi pasien sekaligus.</p>
+                </div>
+                <button id="btnGotIt" class="w-full py-2 bg-brand-700 text-white rounded-xl text-xs font-bold shadow-sm">
+                    Saya Mengerti
+                </button>
+            </div>
+        </div>
+
+        <!-- Toast Notification Box -->
+        <div id="toastBox" class="absolute top-16 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-2 rounded-full text-xs font-semibold shadow-lg z-50 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-2 flex items-center space-x-2">
+            <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+            <span id="toastMsg">Pesan Toast</span>
+        </div>
+
+    </div>
+
+    <script>
+        /**
+         * KLOP KB Dataset based on WHO Medical Eligibility Criteria (MEC) & Kemenkes RI Guidelines
+         */
+        const CONTRACEPTIVE_METHODS = [
+            { id: "pk", short: "PK", name: "Pil Kombinasi (COC)", color: "#ec4899" },
+            { id: "kpp", short: "KPP", name: "Pil Progestin (Minipill)", color: "#be185d" },
+            { id: "dmpa", short: "Suntik 3B", name: "Suntik Progestin (DMPA)", color: "#e11d48" },
+            { id: "implan", short: "Implan", name: "Implan / Susuk KB", color: "#d946ef" },
+            { id: "akdr_cu", short: "AKDR-Cu", name: "AKDR Tembaga (IUD Copper)", color: "#f59e0b" },
+            { id: "akdr_lng", short: "AKDR-LNG", name: "AKDR Levonorgestrel", color: "#a855f7" },
+            { id: "tubektomi", short: "MOP/MOW", name: "Kontrasepsi Mantap (Steril)", color: "#8b5cf6" }
+        ];
+
+        const MEDICAL_CONDITIONS = [
+            {
+                id: 1,
+                title: "Pascapersalinan < 6 Minggu (Menyusui Eksklusif)",
+                categoryGroup: "Pascapersalinan & Menyusui",
+                desc: "Ibu menyusui eksklusif usia bayi di bawah 6 minggu pascapersalinan.",
+                matrix: { pk: 4, kpp: 1, dmpa: 1, implan: 1, akdr_cu: 1, akdr_lng: 1, tubektomi: 1 }
+            },
+            {
+                id: 2,
+                title: "Pascapersalinan 6 Minggu - 6 Bulan (Menyusui)",
+                categoryGroup: "Pascapersalinan & Menyusui",
+                desc: "Ibu menyusui dengan usia bayi 6 minggu hingga 6 bulan.",
+                matrix: { pk: 2, kpp: 1, dmpa: 1, implan: 1, akdr_cu: 1, akdr_lng: 1, tubektomi: 1 }
+            },
+            {
+                id: 3,
+                title: "Pascapersalinan > 6 Bulan (Menyusui)",
+                categoryGroup: "Pascapersalinan & Menyusui",
+                desc: "Ibu menyusui dengan usia anak lebih dari 6 bulan.",
+                matrix: { pk: 1, kpp: 1, dmpa: 1, implan: 1, akdr_cu: 1, akdr_lng: 1, tubektomi: 1 }
+            },
+            {
+                id: 4,
+                title: "Merokok Usia ≥ 35 Tahun (< 15 Batang/Hari)",
+                categoryGroup: "Gaya Hidup / Merokok",
+                desc: "Perokok usia 35 tahun ke atas dengan konsumsi ringan.",
+                matrix: { pk: 3, kpp: 1, dmpa: 1, implan: 1, akdr_cu: 1, akdr_lng: 1, tubektomi: 1 }
+            },
+            {
+                id: 5,
+                title: "Merokok Usia ≥ 35 Tahun (≥ 15 Batang/Hari)",
+                categoryGroup: "Gaya Hidup / Merokok",
+                desc: "Perokok berat berusia 35 tahun atau lebih.",
+                matrix: { pk: 4, kpp: 1, dmpa: 1, implan: 1, akdr_cu: 1, akdr_lng: 1, tubektomi: 1 }
+            },
+            {
+                id: 6,
+                title: "Hipertensi Ringan/Sedang (140-159 / 90-99 mmHg)",
+                categoryGroup: "Kardiovaskular",
+                desc: "Tekanan darah terukur moderat.",
+                matrix: { pk: 3, kpp: 1, dmpa: 2, implan: 1, akdr_cu: 1, akdr_lng: 1, tubektomi: 1 }
+            },
+            {
+                id: 7,
+                title: "Hipertensi Berat (≥ 160 / ≥ 100 mmHg)",
+                categoryGroup: "Kardiovaskular",
+                desc: "Tekanan darah tinggi tingkat berat.",
+                matrix: { pk: 4, kpp: 2, dmpa: 2, implan: 2, akdr_cu: 1, akdr_lng: 2, tubektomi: 2 }
+            },
+            {
+                id: 8,
+                title: "Riwayat / Trombosis Vena Dalam (DVT/Emboli Paru)",
+                categoryGroup: "Vaskular",
+                desc: "Riwayat bekuan darah pembuluh vena.",
+                matrix: { pk: 4, kpp: 2, dmpa: 2, implan: 2, akdr_cu: 1, akdr_lng: 2, tubektomi: 1 }
+            },
+            {
+                id: 9,
+                title: "Diabetes Tanpa Komplikasi Vaskular",
+                categoryGroup: "Endokrin",
+                desc: "Diabetes Melitus teruji tanpa komplikasi organ/pembuluh darah.",
+                matrix: { pk: 2, kpp: 1, dmpa: 2, implan: 1, akdr_cu: 1, akdr_lng: 2, tubektomi: 1 }
+            },
+            {
+                id: 10,
+                title: "Diabetes Dengan Nephropathy / Vasculopathy",
+                categoryGroup: "Endokrin",
+                desc: "Diabetes dengan gangguan ginjal atau kerusakan vaskular.",
+                matrix: { pk: 3, kpp: 2, dmpa: 3, implan: 2, akdr_cu: 1, akdr_lng: 2, tubektomi: 2 }
+            },
+            {
+                id: 11,
+                title: "Kanker Payudara (Aktif / Saat Ini)",
+                categoryGroup: "Onkologi",
+                desc: "Diagnosa karsinoma payudara yang sedang diderita.",
+                matrix: { pk: 4, kpp: 4, dmpa: 4, implan: 4, akdr_cu: 1, akdr_lng: 4, tubektomi: 1 }
+            },
+            {
+                id: 12,
+                title: "Migrain Dengan Aura (Segala Usia)",
+                categoryGroup: "Neurologi",
+                desc: "Sakit kepala migrain disertai gejala aura visual/sensorik.",
+                matrix: { pk: 4, kpp: 2, dmpa: 2, implan: 2, akdr_cu: 1, akdr_lng: 2, tubektomi: 1 }
+            },
+            {
+                id: 13,
+                title: "Perdarahan Vagina Tak Terdiagnosa",
+                categoryGroup: "Ginekologi",
+                desc: "Perdarahan pervaginam abnormal belum dievaluasi.",
+                matrix: { pk: 2, kpp: 2, dmpa: 2, implan: 2, akdr_cu: 4, akdr_lng: 4, tubektomi: 3 }
+            },
+            {
+                id: 14,
+                title: "Infeksi Menular Seksual (IMS) / Servisitis Aktif",
+                categoryGroup: "Infeksi",
+                desc: "Infeksi aktif klamidia, gonore, atau radang serviks.",
+                matrix: { pk: 1, kpp: 1, dmpa: 1, implan: 1, akdr_cu: 4, akdr_lng: 4, tubektomi: 3 }
+            },
+            {
+                id: 15,
+                title: "HIV / AIDS (Stadium Klinis 1 & 2)",
+                categoryGroup: "Infeksi",
+                desc: "Terinfeksi HIV tanpa komplikasi infeksi oportunistik berat.",
+                matrix: { pk: 1, kpp: 1, dmpa: 1, implan: 1, akdr_cu: 2, akdr_lng: 2, tubektomi: 1 }
+            },
+            {
+                id: 16,
+                title: "Mioma Uteri Tanpa Distorsi Uterus",
+                categoryGroup: "Ginekologi",
+                desc: "Tumor jinak rahim tanpa mengubah kavum uteri.",
+                matrix: { pk: 1, kpp: 1, dmpa: 1, implan: 1, akdr_cu: 1, akdr_lng: 1, tubektomi: 1 }
+            }
+        ];
+
+        // App State
+        let outerRotation = 0;
+        let innerRotation = 0;
+        let activeRing = 'outer';
+        let isDragging = false;
+        let startAngle = 0;
+        let currentSectorIndex = 0;
+
+        // DOM References
+        const outerRingEl = document.getElementById('outerRing');
+        const innerRingEl = document.getElementById('innerRing');
+        const outerSectorsG = document.getElementById('outerSectors');
+        const innerSectorsG = document.getElementById('innerSectors');
+        const wheelContainer = document.getElementById('wheelContainer');
+        const conditionSelect = document.getElementById('conditionSelect');
+        const modeOuterBtn = document.getElementById('modeOuter');
+        const modeInnerBtn = document.getElementById('modeInner');
+
+        const activeConditionTitle = document.getElementById('activeConditionTitle');
+        const activeConditionCategory = document.getElementById('activeConditionCategory');
+        const activeConditionDesc = document.getElementById('activeConditionDesc');
+        const methodResultsList = document.getElementById('methodResultsList');
+
+        // Helper: Geometry conversions
+        const degToRad = deg => (deg * Math.PI) / 180;
+        function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+            const angleInRadians = degToRad(angleInDegrees - 90);
+            return {
+                x: centerX + (radius * Math.cos(angleInRadians)),
+                y: centerY + (radius * Math.sin(angleInRadians))
+            };
+        }
+
+        function describeArc(x, y, innerRadius, outerRadius, startAngle, endAngle) {
+            const startOuter = polarToCartesian(x, y, outerRadius, endAngle);
+            const endOuter = polarToCartesian(x, y, outerRadius, startAngle);
+            const startInner = polarToCartesian(x, y, innerRadius, endAngle);
+            const endInner = polarToCartesian(x, y, innerRadius, startAngle);
+
+            const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+            return [
+                "M", startOuter.x, startOuter.y,
+                "A", outerRadius, outerRadius, 0, largeArcFlag, 0, endOuter.x, endOuter.y,
+                "L", endInner.x, endInner.y,
+                "A", innerRadius, innerRadius, 0, largeArcFlag, 1, startInner.x, startInner.y,
+                "Z"
+            ].join(" ");
+        }
+
+        function buildWheelSVG() {
+            const numConditions = MEDICAL_CONDITIONS.length;
+            const sectorAngle = 360 / numConditions;
+
+            // Populate Dropdown Options
+            conditionSelect.innerHTML = '';
+            MEDICAL_CONDITIONS.forEach((cond, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.textContent = `${idx + 1}. ${cond.title}`;
+                conditionSelect.appendChild(opt);
+            });
+
+            // 1. Render Outer Ring (Medical Conditions)
+            outerSectorsG.innerHTML = '';
+            MEDICAL_CONDITIONS.forEach((cond, i) => {
+                const aStart = i * sectorAngle;
+                const aEnd = (i + 1) * sectorAngle;
+                const aMid = aStart + (sectorAngle / 2);
+
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('class', 'cursor-pointer');
+                g.addEventListener('click', () => selectConditionIndex(i));
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                const fillColor = (i % 2 === 0) ? '#be185d' : '#9d174d';
+                path.setAttribute('d', describeArc(300, 300, 198, 282, aStart, aEnd));
+                path.setAttribute('fill', fillColor);
+                path.setAttribute('stroke', '#831843');
+                path.setAttribute('stroke-width', '1');
+
+                const textPos = polarToCartesian(300, 300, 240, aMid);
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', textPos.x);
+                text.setAttribute('y', textPos.y);
+                text.setAttribute('fill', '#ffffff');
+                text.setAttribute('font-size', '9.5');
+                text.setAttribute('font-weight', '700');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('dominant-baseline', 'middle');
+
+                let textRot = aMid;
+                if (textRot > 90 && textRot < 270) textRot += 180;
+                text.setAttribute('transform', `rotate(${textRot}, ${textPos.x}, ${textPos.y})`);
+
+                const shortTitle = cond.title.length > 20 ? cond.title.substring(0, 18) + '..' : cond.title;
+                text.textContent = `${i + 1}. ${shortTitle}`;
+
+                g.appendChild(path);
+                g.appendChild(text);
+                outerSectorsG.appendChild(g);
+            });
+
+            // 2. Render Inner Ring (Methods & Windows)
+            innerSectorsG.innerHTML = '';
+            const numMethods = CONTRACEPTIVE_METHODS.length;
+            const mAngle = 360 / numMethods;
+
+            CONTRACEPTIVE_METHODS.forEach((method, i) => {
+                const aStart = i * mAngle;
+                const aMid = aStart + (mAngle / 2);
+
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+                // Sector Line
+                const linePos = polarToCartesian(300, 300, 192, aStart);
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', 300);
+                line.setAttribute('y1', 300);
+                line.setAttribute('x2', linePos.x);
+                line.setAttribute('y2', linePos.y);
+                line.setAttribute('stroke', '#be185d');
+                line.setAttribute('stroke-width', '1.5');
+
+                // Method Title Text
+                const textPos = polarToCartesian(300, 300, 130, aMid);
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', textPos.x);
+                text.setAttribute('y', textPos.y);
+                text.setAttribute('fill', '#9d174d');
+                text.setAttribute('font-size', '10.5');
+                text.setAttribute('font-weight', '800');
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('dominant-baseline', 'middle');
+                
+                let tRot = aMid;
+                if (tRot > 90 && tRot < 270) tRot += 180;
+                text.setAttribute('transform', `rotate(${tRot}, ${textPos.x}, ${textPos.y})`);
+                text.textContent = method.short;
+
+                // Category Window
+                const winPos = polarToCartesian(300, 300, 172, aMid);
+                const circleWin = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circleWin.setAttribute('cx', winPos.x);
+                circleWin.setAttribute('cy', winPos.y);
+                circleWin.setAttribute('r', '13');
+                circleWin.setAttribute('fill', '#ffffff');
+                circleWin.setAttribute('stroke', '#db2777');
+                circleWin.setAttribute('stroke-width', '2');
+
+                // Category Number Text
+                const catText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                catText.setAttribute('id', `catWindow_${method.id}`);
+                catText.setAttribute('x', winPos.x);
+                catText.setAttribute('y', winPos.y + 1);
+                catText.setAttribute('fill', '#9d174d');
+                catText.setAttribute('font-size', '12');
+                catText.setAttribute('font-weight', '900');
+                catText.setAttribute('text-anchor', 'middle');
+                catText.setAttribute('dominant-baseline', 'middle');
+                catText.textContent = "1";
+
+                g.appendChild(line);
+                g.appendChild(text);
+                g.appendChild(circleWin);
+                g.appendChild(catText);
+                innerSectorsG.appendChild(g);
+            });
+        }
+
+        function getMouseAngle(e) {
+            const rect = wheelContainer.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+            return Math.atan2(clientY - centerY, clientX - centerX) * (180 / Math.PI);
+        }
+
+        function initDragHandlers() {
+            const startDrag = (e) => {
+                isDragging = true;
+                const currentAngle = getMouseAngle(e);
+                const currentRot = activeRing === 'outer' ? outerRotation : innerRotation;
+                startAngle = currentAngle - currentRot;
+            };
+
+            const doDrag = (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                const angle = getMouseAngle(e);
+                let newRot = (angle - startAngle) % 360;
+                if (newRot < 0) newRot += 360;
+
+                if (activeRing === 'outer') {
+                    outerRotation = newRot;
+                } else {
+                    innerRotation = newRot;
+                }
+                applyRotations();
+            };
+
+            const endDrag = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                snapToSector();
+            };
+
+            wheelContainer.addEventListener('mousedown', startDrag);
+            window.addEventListener('mousemove', doDrag);
+            window.addEventListener('mouseup', endDrag);
+
+            wheelContainer.addEventListener('touchstart', startDrag, { passive: false });
+            window.addEventListener('touchmove', doDrag, { passive: false });
+            window.addEventListener('touchend', endDrag);
+        }
+
+        function applyRotations() {
+            outerRingEl.style.transform = `rotate(${outerRotation}deg)`;
+            outerRingEl.style.transformOrigin = `300px 300px`;
+
+            innerRingEl.style.transform = `rotate(${innerRotation}deg)`;
+            innerRingEl.style.transformOrigin = `300px 300px`;
+
+            updateActiveConditionFromRotation();
+        }
+
+        function updateActiveConditionFromRotation() {
+            const numConditions = MEDICAL_CONDITIONS.length;
+            const sectorAngle = 360 / numConditions;
+
+            let effectiveAngle = (360 - (outerRotation % 360)) % 360;
+            let index = Math.floor((effectiveAngle + (sectorAngle / 2)) / sectorAngle) % numConditions;
+            if (index < 0) index += numConditions;
+
+            currentSectorIndex = index;
+            conditionSelect.value = index;
+
+            renderActiveResults();
+        }
+
+        function snapToSector() {
+            const numConditions = MEDICAL_CONDITIONS.length;
+            const sectorAngle = 360 / numConditions;
+
+            const targetAngle = (360 - (currentSectorIndex * sectorAngle)) % 360;
+            outerRotation = targetAngle;
+
+            outerRingEl.style.transition = 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)';
+            applyRotations();
+
+            setTimeout(() => {
+                outerRingEl.style.transition = 'transform 0.075s linear';
+            }, 300);
+        }
+
+        function selectConditionIndex(index) {
+            currentSectorIndex = index;
+            conditionSelect.value = index;
+            snapToSector();
+        }
+
+        function renderActiveResults() {
+            const condition = MEDICAL_CONDITIONS[currentSectorIndex];
+            if (!condition) return;
+
+            activeConditionTitle.textContent = `${currentSectorIndex + 1}. ${condition.title}`;
+            activeConditionCategory.textContent = condition.categoryGroup;
+            activeConditionDesc.textContent = condition.desc;
+
+            methodResultsList.innerHTML = '';
+            CONTRACEPTIVE_METHODS.forEach(method => {
+                const categoryNum = condition.matrix[method.id] || 1;
+
+                // Update Window Text
+                const catWindowEl = document.getElementById(`catWindow_${method.id}`);
+                if (catWindowEl) {
+                    catWindowEl.textContent = categoryNum;
+                    catWindowEl.setAttribute('fill', getCategoryHex(categoryNum));
+                }
+
+                // Render Result Card
+                const card = document.createElement('div');
+                card.className = "flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-slate-50 transition";
+
+                card.innerHTML = `
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-2.5 h-2.5 rounded-full" style="background-color: ${method.color}"></div>
+                        <div>
+                            <h4 class="text-xs font-extrabold text-slate-800">${method.name}</h4>
+                            <p class="text-[10px] text-slate-500">${getCategoryLabel(categoryNum)}</p>
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-lg text-[11px] font-black cat-${categoryNum}-bg shadow-2xs shrink-0">
+                        Kat ${categoryNum}
+                    </span>
+                `;
+                methodResultsList.appendChild(card);
+            });
+        }
+
+        function getCategoryLabel(cat) {
+            switch(cat) {
+                case 1: return "Bebas digunakan (Tanpa batasan)";
+                case 2: return "Keuntungan > Risiko kesehatan";
+                case 3: return "Risiko > Keuntungan (Tdk direkomendasikan)";
+                case 4: return "Kontraindikasi Mutlak (Dilarang)";
+                default: return "";
+            }
+        }
+
+        function getCategoryHex(cat) {
+            switch(cat) {
+                case 1: return "#10b981";
+                case 2: return "#eab308";
+                case 3: return "#f97316";
+                case 4: return "#ef4444";
+                default: return "#be185d";
+            }
+        }
+
+        function initScreeningCalculator() {
+            const btnCalc = document.getElementById('btnCalculateScreening');
+            const resultBox = document.getElementById('screeningResultBox');
+            const summaryCards = document.getElementById('screeningSummaryCards');
+
+            btnCalc.addEventListener('click', () => {
+                const ageOpt = document.getElementById('screenAge').value;
+                const postpOpt = document.getElementById('screenPostpartum').value;
+                const bpOpt = document.getElementById('screenBP').value;
+
+                const chkDiabetes = document.getElementById('chkDiabetes').checked;
+                const chkBreastCancer = document.getElementById('chkBreastCancer').checked;
+                const chkDVT = document.getElementById('chkDVT').checked;
+                const chkAbnormalBleeding = document.getElementById('chkAbnormalBleeding').checked;
+                const chkSTI = document.getElementById('chkSTI').checked;
+
+                // Evaluate maximum category for each method
+                let results = {};
+                CONTRACEPTIVE_METHODS.forEach(m => results[m.id] = 1);
+
+                // Age & Smoking
+                if (ageOpt === 'above35_light_smoker') results.pk = Math.max(results.pk, 3);
+                if (ageOpt === 'above35_heavy_smoker') results.pk = Math.max(results.pk, 4);
+
+                // Postpartum
+                if (postpOpt === 'bf_under_6w') {
+                    results.pk = Math.max(results.pk, 4);
+                } else if (postpOpt === 'bf_6w_6m') {
+                    results.pk = Math.max(results.pk, 2);
+                }
+
+                // Blood Pressure
+                if (bpOpt === 'mild') {
+                    results.pk = Math.max(results.pk, 3);
+                    results.dmpa = Math.max(results.dmpa, 2);
+                } else if (bpOpt === 'severe') {
+                    results.pk = Math.max(results.pk, 4);
+                    results.dmpa = Math.max(results.dmpa, 2);
+                    results.implan = Math.max(results.implan, 2);
+                    results.akdr_lng = Math.max(results.akdr_lng, 2);
+                }
+
+                // Checkbox Conditions
+                if (chkDiabetes) {
+                    results.pk = Math.max(results.pk, 2);
+                    results.dmpa = Math.max(results.dmpa, 2);
+                }
+                if (chkBreastCancer) {
+                    results.pk = 4; results.kpp = 4; results.dmpa = 4;
+                    results.implan = 4; results.akdr_lng = 4;
+                }
+                if (chkDVT) {
+                    results.pk = Math.max(results.pk, 4);
+                    results.dmpa = Math.max(results.dmpa, 2);
+                }
+                if (chkAbnormalBleeding) {
+                    results.akdr_cu = 4; results.akdr_lng = 4;
+                }
+                if (chkSTI) {
+                    results.akdr_cu = 4; results.akdr_lng = 4;
+                }
+
+                // Render Summary
+                summaryCards.innerHTML = '';
+                CONTRACEPTIVE_METHODS.forEach(m => {
+                    const cat = results[m.id];
+                    const item = document.createElement('div');
+                    item.className = `p-2.5 rounded-xl border flex items-center justify-between cat-${cat}-border bg-slate-50`;
+                    item.innerHTML = `
+                        <div>
+                            <h4 class="text-xs font-bold text-slate-800">${m.name}</h4>
+                            <span class="text-[10px] text-slate-500">${getCategoryLabel(cat)}</span>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-black cat-${cat}-bg">
+                            Kategori ${cat}
+                        </span>
+                    `;
+                    summaryCards.appendChild(item);
+                });
+
+                resultBox.classList.remove('hidden');
+                showToast("Analisa kelayakan pasien selesai!");
+            });
+
+            document.getElementById('btnSaveResume').addEventListener('click', () => {
+                showToast("Resume skrining tersimpan!");
+            });
+        }
+
+        function initAiAssistant() {
+            const btnSend = document.getElementById('btnSendAi');
+            const aiInput = document.getElementById('aiInput');
+            const chatMessages = document.getElementById('chatMessages');
+
+            async function sendMessage() {
+                const text = aiInput.value.trim();
+                if (!text) return;
+
+                // Add User Bubble
+                appendBubble(text, 'user');
+                aiInput.value = '';
+
+                // Add Typing Indicator
+                const typingId = appendTypingIndicator();
+
+                try {
+                    const systemPrompt = "Anda adalah Asisten Klinis Spesialis Kontrasepsi KB berdasarkan standar Roda KLOP KB WHO MEC & Kemenkes RI. Jawablah pertanyaan medis dari Bidan / Dokter secara ringkas, jelas, ilmiah, dan berikan rekomendasi kategori kelayakan 1-4 secara lugas.";
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                    const payload = {
+                        contents: [{ parts: [{ text: text }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    };
+
+                    const resp = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await resp.json();
+                    removeBubble(typingId);
+
+                    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Maaf, terjadi masalah saat memproses data medis.";
+                    appendBubble(aiText, 'ai');
+                } catch (err) {
+                    removeBubble(typingId);
+                    appendBubble("Maaf, jaringan terputus. Pastikan koneksi internet aktif.", 'ai');
+                }
+            }
+
+            function appendBubble(msg, sender) {
+                const div = document.createElement('div');
+                if (sender === 'user') {
+                    div.className = "bg-brand-600 text-white p-3 rounded-2xl rounded-tr-none ml-auto max-w-[85%] leading-relaxed shadow-xs";
+                } else {
+                    div.className = "bg-slate-100 text-slate-800 p-3 rounded-2xl rounded-tl-none border border-slate-200 max-w-[88%] leading-relaxed";
+                }
+                div.textContent = msg;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function appendTypingIndicator() {
+                const id = 'typing_' + Date.now();
+                const div = document.createElement('div');
+                div.id = id;
+                div.className = "bg-slate-100 text-slate-500 p-2.5 rounded-2xl rounded-tl-none border border-slate-200 max-w-[50%] flex items-center space-x-1";
+                div.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin text-brand-600"></i><span class="text-[10px] ml-1">Menganalisa data KLOP...</span>`;
+                chatMessages.appendChild(div);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                return id;
+            }
+
+            function removeBubble(id) {
+                const el = document.getElementById(id);
+                if (el) el.remove();
+            }
+
+            btnSend.addEventListener('click', sendMessage);
+            aiInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+
+            // Prompt Chips
+            document.querySelectorAll('.chip-prompt').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    aiInput.value = chip.textContent.trim();
+                    sendMessage();
+                });
+            });
+        }
+
+        function initGuideAndDatabase() {
+            const dbConditionList = document.getElementById('dbConditionList');
+            const searchInput = document.getElementById('searchCondition');
+
+            function renderDatabase(filterText = '') {
+                dbConditionList.innerHTML = '';
+                const query = filterText.toLowerCase();
+
+                const filtered = MEDICAL_CONDITIONS.filter(c => 
+                    c.title.toLowerCase().includes(query) || 
+                    c.categoryGroup.toLowerCase().includes(query)
+                );
+
+                if (filtered.length === 0) {
+                    dbConditionList.innerHTML = `<div class="text-center py-6 text-slate-400 text-xs">Kondisi tidak ditemukan.</div>`;
+                    return;
+                }
+
+                filtered.forEach((c) => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white p-3 rounded-xl border border-slate-200 shadow-xs space-y-2 cursor-pointer hover:border-brand-500 transition";
+                    card.onclick = () => {
+                        const originalIdx = MEDICAL_CONDITIONS.findIndex(item => item.id === c.id);
+                        if (originalIdx !== -1) {
+                            switchTab('tabWheelView');
+                            selectConditionIndex(originalIdx);
+                        }
+                    };
+
+                    let matrixBadges = '';
+                    CONTRACEPTIVE_METHODS.forEach(m => {
+                        const cat = c.matrix[m.id] || 1;
+                        matrixBadges += `
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold cat-${cat}-bg">
+                                ${m.short}:${cat}
+                            </span>
+                        `;
+                    });
+
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-slate-800">${c.title}</h4>
+                            <span class="text-[9px] text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full font-semibold">${c.categoryGroup}</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500">${c.desc}</p>
+                        <div class="flex flex-wrap gap-1 pt-1 border-t border-slate-100">
+                            ${matrixBadges}
+                        </div>
+                    `;
+                    dbConditionList.appendChild(card);
+                });
+            }
+
+            searchInput.addEventListener('input', (e) => renderDatabase(e.target.value));
+            renderDatabase();
+        }
+
+        function switchTab(targetTabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.getElementById(targetTabId).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                if (btn.getAttribute('data-target') === targetTabId) {
+                    btn.className = "nav-btn active flex flex-col items-center py-1 px-3 rounded-xl text-brand-700 font-bold transition android-btn";
+                } else {
+                    btn.className = "nav-btn flex flex-col items-center py-1 px-3 rounded-xl text-slate-400 font-medium transition android-btn";
+                }
+            });
+        }
+
+        function initNavigation() {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const target = btn.getAttribute('data-target');
+                    switchTab(target);
+                });
+            });
+
+            // Mode Selector Toggle
+            modeOuterBtn.addEventListener('click', () => {
+                activeRing = 'outer';
+                modeOuterBtn.className = "py-1.5 rounded-lg bg-brand-700 text-white shadow-xs transition text-center";
+                modeInnerBtn.className = "py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition text-center";
+            });
+
+            modeInnerBtn.addEventListener('click', () => {
+                activeRing = 'inner';
+                modeInnerBtn.className = "py-1.5 rounded-lg bg-brand-700 text-white shadow-xs transition text-center";
+                modeOuterBtn.className = "py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition text-center";
+            });
+
+            // Dropdown select
+            conditionSelect.addEventListener('change', (e) => {
+                if (e.target.value !== "") selectConditionIndex(parseInt(e.target.value));
+            });
+
+            // Reset
+            document.getElementById('btnReset').addEventListener('click', () => {
+                outerRotation = 0;
+                innerRotation = 0;
+                selectConditionIndex(0);
+                showToast("Posisi roda direset!");
+            });
+
+            // Modal
+            const modal = document.getElementById('infoModal');
+            document.getElementById('btnInfo').addEventListener('click', () => modal.classList.remove('hidden'));
+            document.getElementById('btnCloseModal').addEventListener('click', () => modal.classList.add('hidden'));
+            document.getElementById('btnGotIt').addEventListener('click', () => modal.classList.add('hidden'));
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const hrs = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hrs}:${mins}`;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toastBox');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-2');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-2');
+            }, 2000);
+        }
+
+        window.onload = function() {
+            buildWheelSVG();
+            initDragHandlers();
+            initScreeningCalculator();
+            initAiAssistant();
+            initGuideAndDatabase();
+            initNavigation();
+            initPwaInstaller();
+            selectConditionIndex(0);
+
+            updateClock();
+            setInterval(updateClock, 30000);
+        };
+
+        function initPwaInstaller() {
+            let deferredPrompt;
+            const btnInstallPwa = document.getElementById('btnInstallPwa');
+
+            // Inject Dynamic Web App Manifest
+            const manifest = {
+                name: "Aplikasi KLOP KB Mobile",
+                short_name: "KLOP KB",
+                start_url: ".",
+                display: "standalone",
+                background_color: "#0f172a",
+                theme_color: "#831843",
+                icons: [{
+                    src: "https://cdn-icons-png.flaticon.com/512/2966/2966327.png",
+                    sizes: "512x512",
+                    type: "image/png"
+                }]
+            };
+            const stringManifest = JSON.stringify(manifest);
+            const blob = new Blob([stringManifest], {type: 'application/json'});
+            const manifestURL = URL.createObjectURL(blob);
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = manifestURL;
+            document.head.appendChild(link);
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                if (btnInstallPwa) btnInstallPwa.classList.remove('hidden');
+            });
+
+            if (btnInstallPwa) {
+                btnInstallPwa.addEventListener('click', async () => {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        if (outcome === 'accepted') {
+                            btnInstallPwa.classList.add('hidden');
+                        }
+                        deferredPrompt = null;
+                    } else {
+                        showToast("Buka di Google Chrome Android lalu pilih 'Tambahkan ke Layar Utama'");
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
